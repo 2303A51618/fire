@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URL=${MONGO_URL}
+      - SMTP_SERVER=${SMTP_SERVER}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_LOGIN=${SMTP_LOGIN}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - MODEL_PATH=${MODEL_PATH}
+      - ALERT_THRESHOLD=${ALERT_THRESHOLD}
+      - ALERT_EMAIL_FROM=${ALERT_EMAIL_FROM}
+      - ALERT_EMAIL_TO=${ALERT_EMAIL_TO}
+      - DEBUG=${DEBUG}
+    volumes:
+      - ./logs:/app/logs
+      - ..:/app/models
+    restart: unless-stopped
+    networks:
+      - fire-detection
+
+networks:
+  fire-detection:
+    driver: bridge
