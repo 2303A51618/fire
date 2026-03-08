@@ -29,7 +29,7 @@ package-lock.json
 *.swo
 
 # Models (large files)
-*.h5
+# *.h5  # Allow model files for deployment
 
 # System
 .DS_Store

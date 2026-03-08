@@ -55,7 +55,7 @@ htmlcov/
 .tox/
 
 # Models
-*.h5
+# *.h5  # Allow model files for deployment
 *.pkl
 *.pickle
 *.pth
