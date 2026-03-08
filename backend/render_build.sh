@@ -7,9 +7,9 @@ set -e
 
 echo "Installing dependencies..."
 pip install --upgrade pip
-pip install -r backend/requirements.txt
+pip install -r requirements.txt
 
 echo "Creating logs directory..."
-mkdir -p backend/logs
+mkdir -p logs
 
 echo "Build completed successfully!"
