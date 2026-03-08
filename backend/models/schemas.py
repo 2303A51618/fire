@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -34,6 +34,8 @@ class FireAlert(BaseModel):
 
 class HealthResponse(BaseModel):
     """Response model for health check endpoint"""
+    model_config = ConfigDict(protected_namespaces=())
+
     status: str = Field(..., description="Service status")
     model_loaded: bool = Field(..., description="Whether the model is loaded")
     database_connected: bool = Field(..., description="Whether database is connected")

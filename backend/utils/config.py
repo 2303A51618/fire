@@ -4,7 +4,7 @@ Configuration management using Pydantic Settings
 import logging
 from functools import lru_cache
 from pathlib import Path
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +37,13 @@ class Settings(BaseSettings):
     environment: str = "production"
     debug: bool = False
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        # Keep pydantic's protected namespace without warning on `model_path`.
+        protected_namespaces=("settings_",),
+    )
 
 
 @lru_cache()

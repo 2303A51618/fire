@@ -193,12 +193,13 @@ Do not reply to this email.
             True if connection successful, False otherwise
         """
         try:
-            server = smtplib.SMTP(self.smtp_server, self.smtp_port)
+            # Keep startup resilient on platforms where outbound SMTP may be delayed/blocked.
+            server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=12)
             server.starttls()
             server.login(self.login, self.password)
             server.quit()
             logger.info("SMTP connection test successful")
             return True
         except Exception as e:
-            logger.error(f"SMTP connection test failed: {str(e)}")
+            logger.warning(f"SMTP connection test failed (non-blocking): {str(e)}")
             return False
