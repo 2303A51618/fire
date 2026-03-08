@@ -3,7 +3,9 @@ Logging configuration for the application
 """
 import logging
 import logging.config
+import os
 from datetime import datetime
+from pathlib import Path
 
 
 def setup_logging(debug: bool = False) -> None:
@@ -14,6 +16,10 @@ def setup_logging(debug: bool = False) -> None:
         debug: Enable debug logging
     """
     log_level = logging.DEBUG if debug else logging.INFO
+    
+    # Ensure logs directory exists
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True)
 
     logging_config = {
         "version": 1,
