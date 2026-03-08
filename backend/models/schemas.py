@@ -5,20 +5,21 @@ from datetime import datetime
 
 class PredictionResponse(BaseModel):
     """Response model for fire detection prediction"""
-    prediction: str = Field(..., description="Fire or No Fire")
-    confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score between 0 and 1")
-    timestamp: str = Field(..., description="ISO format timestamp")
-    image_hash: Optional[str] = Field(None, description="SHA256 hash of the image")
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "prediction": "Fire",
                 "confidence": 0.95,
                 "timestamp": "2024-01-15T10:30:00Z",
-                "image_hash": "abc12345..."
+                "image_hash": "abc12345...",
             }
         }
+    )
+
+    prediction: str = Field(..., description="Fire or No Fire")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score between 0 and 1")
+    timestamp: str = Field(..., description="ISO format timestamp")
+    image_hash: Optional[str] = Field(None, description="SHA256 hash of the image")
 
 
 class FireAlert(BaseModel):
@@ -34,35 +35,35 @@ class FireAlert(BaseModel):
 
 class HealthResponse(BaseModel):
     """Response model for health check endpoint"""
-    model_config = ConfigDict(protected_namespaces=())
+    model_config = ConfigDict(
+        protected_namespaces=(),
+        json_schema_extra={
+            "example": {
+                "status": "healthy",
+                "model_loaded": True,
+                "database_connected": True,
+                "timestamp": "2024-01-15T10:30:00Z",
+            }
+        },
+    )
 
     status: str = Field(..., description="Service status")
     model_loaded: bool = Field(..., description="Whether the model is loaded")
     database_connected: bool = Field(..., description="Whether database is connected")
     timestamp: str = Field(..., description="ISO format timestamp")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "status": "healthy",
-                "model_loaded": True,
-                "database_connected": True,
-                "timestamp": "2024-01-15T10:30:00Z"
-            }
-        }
-
-
 class ErrorResponse(BaseModel):
     """Response model for error responses"""
-    error: str
-    detail: Optional[str] = None
-    timestamp: str
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "error": "Bad Request",
                 "detail": "Invalid image format",
-                "timestamp": "2024-01-15T10:30:00Z"
+                "timestamp": "2024-01-15T10:30:00Z",
             }
         }
+    )
+
+    error: str
+    detail: Optional[str] = None
+    timestamp: str
