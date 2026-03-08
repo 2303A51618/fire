@@ -9,27 +9,83 @@ const HomePage = () => {
   return (
     <div className="space-y-12 animate-fade-in">
       {/* Hero Section */}
-      <section className="fire-gradient text-white py-24 rounded-2xl shadow-2xl overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/20"></div>
-        <div className="relative max-w-4xl mx-auto text-center px-4">
-          <div className="animate-float mb-6">
-            <span className="text-7xl">🔥</span>
+      <section className="relative overflow-hidden text-white w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-8 min-h-[calc(100vh-4rem)] border-y border-fire-300/30">
+        <video
+          className="absolute inset-0 w-full h-full object-cover"
+          autoPlay
+          loop
+          muted
+          playsInline
+        >
+          <source src="/AI_Forest_Fire_Detection_and_Prevention.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-br from-forest-950/70 via-forest-900/55 to-fire-900/65"></div>
+        <div className="absolute inset-0 hero-grid-overlay opacity-20"></div>
+        <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full bg-forest-300/20 blur-3xl"></div>
+        <div className="absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-fire-300/20 blur-3xl"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.22),transparent_35%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.14),transparent_35%)]"></div>
+        <div className="hero-scanline"></div>
+
+        <div className="absolute -left-16 top-16 hidden lg:block">
+          <div className="relative h-44 w-44">
+            <div className="absolute inset-0 hero-radar-ring"></div>
+            <div className="absolute inset-4 hero-radar-ring" style={{ animationDuration: '12s' }}></div>
+            <div className="absolute inset-[34%] rounded-full bg-forest-300/70 animate-safe-pulse"></div>
           </div>
-          <h1 className="text-6xl font-bold mb-6 animate-slide-in-left drop-shadow-lg">
-            Forest Fire Detection System
-          </h1>
-          <p className="text-2xl mb-8 text-fire-50 leading-relaxed animate-fade-in">
-            Advanced AI-powered early detection for forest fire prevention and response
-          </p>
-          <p className="text-lg mb-10 text-fire-100 animate-fade-in">
-            🌲 Protecting our forests with cutting-edge technology 🌳
-          </p>
-          <Link
-            to="/dashboard"
-            className="inline-block bg-white text-fire-700 px-10 py-4 rounded-xl font-bold hover:bg-fire-50 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
-          >
-            Go to Dashboard →
-          </Link>
+        </div>
+
+        <div className="absolute left-8 bottom-10 hidden md:block">
+          <div className="h-2 w-2 rounded-full bg-fire-200 animate-ember" style={{ animationDelay: '0s' }}></div>
+          <div className="h-3 w-3 rounded-full bg-fire-300 animate-ember" style={{ animationDelay: '1.1s' }}></div>
+          <div className="h-2.5 w-2.5 rounded-full bg-fire-100 animate-ember" style={{ animationDelay: '2.2s' }}></div>
+        </div>
+
+        <div className="absolute right-10 top-10 hidden md:flex items-center gap-3 bg-forest-300/15 border border-forest-100/35 px-4 py-2 rounded-full hero-safe-glow animate-safe-pulse">
+          <span className="text-lg">🛡️</span>
+          <span className="text-sm font-semibold tracking-wide">Safety Layer Active</span>
+        </div>
+
+        <div className="relative px-6 py-12 md:px-10 md:py-16 lg:px-14 lg:py-20 min-h-[calc(100vh-4rem)] flex items-center">
+          <div className="max-w-7xl w-full">
+            <div className="max-w-3xl">
+              <div className="inline-flex items-center gap-2 mb-5 rounded-full bg-white/15 px-4 py-2 border border-white/25 hero-fire-glow">
+                <span className="text-xl animate-flame">🔥</span>
+                <span className="text-sm md:text-base font-semibold tracking-wide">Early Detection. Faster Response.</span>
+              </div>
+
+              <div className="mb-5 flex flex-wrap gap-2">
+                <span className="rounded-full bg-black/20 border border-white/20 px-3 py-1 text-xs md:text-sm font-semibold hero-flicker">24/7 Watch</span>
+                <span className="rounded-full bg-black/20 border border-white/20 px-3 py-1 text-xs md:text-sm font-semibold">Rapid Alerting</span>
+                <span className="rounded-full bg-black/20 border border-white/20 px-3 py-1 text-xs md:text-sm font-semibold">Wildfire Risk AI</span>
+              </div>
+
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight drop-shadow-md hero-glow-sweep text-left">
+                <span className="text-cyan-300">Forest Fire Detection</span>
+                <span className="block text-orange-400">Control Room</span>
+              </h1>
+
+              <p className="mt-5 text-base md:text-lg text-fire-50 max-w-2xl leading-relaxed">
+                Monitor high-risk zones with AI-based image analysis, trigger rapid alerts, and reduce response time before incidents escalate.
+              </p>
+
+              <div className="mt-8 flex flex-wrap gap-4">
+                <Link
+                  to="/upload"
+                  className="inline-flex items-center gap-2 bg-white text-fire-800 px-6 py-3 rounded-xl font-bold hover:bg-fire-50 transition-all duration-300 transform hover:scale-105 hero-fire-glow hero-cta-fire"
+                >
+                  <span>📤</span>
+                  <span>Start Detection</span>
+                </Link>
+                <Link
+                  to="/dashboard"
+                  className="inline-flex items-center gap-2 bg-black/20 text-white px-6 py-3 rounded-xl font-bold border border-white/30 hover:bg-black/30 transition-all duration-300 transform hover:scale-105 hero-safe-glow"
+                >
+                  <span>📊</span>
+                  <span>Open Dashboard</span>
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

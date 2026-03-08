@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Tuple, Optional
 import numpy as np
 from PIL import Image
-import keras
+import tensorflow as tf
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class ModelLoader:
                 raise FileNotFoundError(f"Model file not found at {self.model_path}")
 
             # Load the H5 model
-            self.model = keras.models.load_model(str(self.model_path))
+            self.model = tf.keras.models.load_model(str(self.model_path), compile=False)
             logger.info(f"Model successfully loaded from {self.model_path}")
 
             # Log model architecture
@@ -91,12 +91,22 @@ class ModelLoader:
             # Make prediction
             prediction = self.model.predict(processed_image, verbose=0)
 
-            # Get the probability
-            confidence = float(np.max(prediction[0]))
+            # Handle both binary sigmoid outputs (shape: [1, 1])
+            # and multi-class softmax outputs (shape: [1, N]).
+            if prediction.ndim == 2 and prediction.shape[1] == 1:
+                fire_prob = float(prediction[0][0])
+                fire_prob = max(0.0, min(1.0, fire_prob))
 
-            # Get the class (assuming binary classification output)
-            class_idx = int(np.argmax(prediction[0]))
-            prediction_class = self.class_names[class_idx]
+                if fire_prob >= 0.5:
+                    prediction_class = "Fire"
+                    confidence = fire_prob
+                else:
+                    prediction_class = "No Fire"
+                    confidence = 1.0 - fire_prob
+            else:
+                class_idx = int(np.argmax(prediction[0]))
+                confidence = float(np.max(prediction[0]))
+                prediction_class = self.class_names[class_idx]
 
             logger.debug(f"Prediction: {prediction_class}, Confidence: {confidence:.4f}")
 
