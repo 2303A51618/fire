@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { predictFire } from '../services/api';
 import { LoadingSpinner, Card, ErrorAlert, SuccessAlert } from './UI';
+import FireMap from './FireMap';
 
 export const UploadForm = () => {
   const [file, setFile] = useState(null);
@@ -9,6 +10,25 @@ export const UploadForm = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [coords, setCoords] = useState(null);
+
+  const getBrowserLocation = () => new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      () => resolve(null),
+      { enableHighAccuracy: true, timeout: 6000, maximumAge: 120000 }
+    );
+  });
 
   const handleFileSelect = (e) => {
     const selectedFile = e.target.files[0];
@@ -33,7 +53,9 @@ export const UploadForm = () => {
       setLoading(true);
       setError(null);
       setSuccess(null);
-      const data = await predictFire(file);
+      const location = await getBrowserLocation();
+      setCoords(location);
+      const data = await predictFire(file, location);
       setResult(data);
       setSuccess('Prediction completed successfully!');
     } catch (err) {
@@ -135,7 +157,38 @@ export const UploadForm = () => {
               <p className="text-gray-600 text-sm">Image Hash</p>
               <p className="text-sm font-mono truncate">{result.image_hash}</p>
             </div>
+
+            {/* Coordinates */}
+            <div>
+              <p className="text-gray-600 text-sm">Coordinates</p>
+              <p className="text-sm font-semibold">
+                {result.latitude != null && result.longitude != null
+                  ? `${Number(result.latitude).toFixed(6)}, ${Number(result.longitude).toFixed(6)}`
+                  : coords
+                    ? `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}`
+                    : 'Not available'}
+              </p>
+            </div>
           </div>
+        </Card>
+      )}
+
+      {result?.prediction === 'Fire' && (result.latitude != null || coords) && (
+        <Card className="border-2 border-fire-300 bg-fire-50/60">
+          <h3 className="text-xl font-bold mb-3 text-fire-700">Fire Detected Location</h3>
+          <p className="text-sm text-fire-700 mb-4">
+            Highlighted on map and included in alert email coordinates.
+          </p>
+          <FireMap
+            fires={[
+              {
+                latitude: result.latitude ?? coords?.latitude,
+                longitude: result.longitude ?? coords?.longitude,
+                confidence: result.confidence,
+                timestamp: result.timestamp,
+              },
+            ]}
+          />
         </Card>
       )}
     </div>

@@ -53,6 +53,8 @@ class DatabaseService:
         timestamp: datetime,
         image_hash: str,
         alert_threshold: float,
+        latitude: Optional[float] = None,
+        longitude: Optional[float] = None,
     ) -> Optional[str]:
         """
         Store a prediction record in the database
@@ -79,6 +81,8 @@ class DatabaseService:
                 "timestamp": timestamp,
                 "image_hash": image_hash,
                 "alert_threshold": alert_threshold,
+                "latitude": latitude,
+                "longitude": longitude,
                 "created_at": datetime.utcnow(),
             }
 
@@ -98,6 +102,8 @@ class DatabaseService:
         image_hash: str,
         alert_threshold: float,
         email_sent: bool = False,
+        latitude: Optional[float] = None,
+        longitude: Optional[float] = None,
     ) -> Optional[str]:
         """
         Store a fire alert in the database
@@ -127,6 +133,8 @@ class DatabaseService:
                 "alert_threshold": alert_threshold,
                 "status": "triggered",
                 "email_sent": email_sent,
+                "latitude": latitude,
+                "longitude": longitude,
                 "created_at": datetime.utcnow(),
                 "acknowledged": False,
             }

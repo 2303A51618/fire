@@ -6,7 +6,7 @@ import logging
 from datetime import datetime
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks
+from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -102,7 +102,12 @@ app.add_middleware(
 
 
 def send_alert_email_background(
-    to_email: str, confidence: float, timestamp: datetime, alert_threshold: float
+    to_email: str,
+    confidence: float,
+    timestamp: datetime,
+    alert_threshold: float,
+    latitude: float = None,
+    longitude: float = None,
 ):
     """
     Background task to send alert email
@@ -120,6 +125,8 @@ def send_alert_email_background(
                 confidence=confidence,
                 timestamp=timestamp,
                 alert_threshold=alert_threshold,
+                latitude=latitude,
+                longitude=longitude,
             )
     except Exception as e:
         logger.error(f"Error in background email task: {str(e)}")
@@ -158,7 +165,12 @@ async def health_check():
 
 
 @app.post("/predict", response_model=PredictionResponse, tags=["Predictions"])
-async def predict(file: UploadFile = File(...), background_tasks: BackgroundTasks = None):
+async def predict(
+    file: UploadFile = File(...),
+    background_tasks: BackgroundTasks = None,
+    latitude: float = Form(None),
+    longitude: float = Form(None),
+):
     """
     Make fire detection prediction on uploaded image
 
@@ -206,6 +218,8 @@ async def predict(file: UploadFile = File(...), background_tasks: BackgroundTask
                 timestamp=timestamp,
                 image_hash=image_hash,
                 alert_threshold=settings.alert_threshold,
+                latitude=latitude,
+                longitude=longitude,
             )
 
         # If Fire detected above threshold, trigger alerts
@@ -227,6 +241,8 @@ async def predict(file: UploadFile = File(...), background_tasks: BackgroundTask
                 image_hash=image_hash,
                 alert_threshold=settings.alert_threshold,
                 email_sent=False,
+                latitude=latitude,
+                longitude=longitude,
             )
 
             # Send email alert in background
@@ -237,6 +253,8 @@ async def predict(file: UploadFile = File(...), background_tasks: BackgroundTask
                     confidence=confidence,
                     timestamp=timestamp,
                     alert_threshold=settings.alert_threshold,
+                    latitude=latitude,
+                    longitude=longitude,
                 )
 
                 # Update email_sent status if alert was stored
@@ -249,6 +267,8 @@ async def predict(file: UploadFile = File(...), background_tasks: BackgroundTask
             confidence=confidence,
             timestamp=timestamp.isoformat() + "Z",
             image_hash=image_hash,
+            latitude=latitude,
+            longitude=longitude,
         )
 
         logger.info(

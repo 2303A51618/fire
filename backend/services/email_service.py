@@ -34,6 +34,8 @@ class EmailService:
         confidence: float,
         timestamp: datetime,
         alert_threshold: float,
+        latitude: float = None,
+        longitude: float = None,
     ) -> bool:
         """
         Send fire detection alert email
@@ -49,6 +51,24 @@ class EmailService:
         """
         try:
             subject = "🚨 Fire Detection Alert - Immediate Action Required"
+
+            location_html = ""
+            location_text = ""
+            if latitude is not None and longitude is not None:
+                location_html = f"""
+                                <div class=\"detail-item\">
+                                    <span class=\"label\">Coordinates:</span>
+                                    <span class=\"value\">{latitude:.6f}, {longitude:.6f}</span>
+                                </div>
+                                <div class=\"detail-item\">
+                                    <span class=\"label\">Map Link:</span>
+                                    <span class=\"value\"><a href=\"https://maps.google.com/?q={latitude},{longitude}\">Open in Google Maps</a></span>
+                                </div>
+                """
+                location_text = (
+                    f"- Coordinates: {latitude:.6f}, {longitude:.6f}\n"
+                    f"- Map Link: https://maps.google.com/?q={latitude},{longitude}\n"
+                )
 
             # Create HTML email body
             html_body = f"""
@@ -92,6 +112,7 @@ class EmailService:
                                     <span class="label">Alert Threshold:</span>
                                     <span class="value">{alert_threshold:.2%}</span>
                                 </div>
+                                {location_html}
                             </div>
                             
                             <p><strong>Recommended Actions:</strong></p>
@@ -122,6 +143,7 @@ Detection Details:
 - Detection Time: {timestamp.strftime('%Y-%m-%d %H:%M:%S UTC')}
 - Confidence Level: {confidence:.2%}
 - Alert Threshold: {alert_threshold:.2%}
+{location_text}
 
 Recommended Actions:
 1. Check the monitored area immediately

@@ -20,6 +20,8 @@ class PredictionResponse(BaseModel):
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score between 0 and 1")
     timestamp: str = Field(..., description="ISO format timestamp")
     image_hash: Optional[str] = Field(None, description="SHA256 hash of the image")
+    latitude: Optional[float] = Field(None, description="Latitude of detection location")
+    longitude: Optional[float] = Field(None, description="Longitude of detection location")
 
 
 class FireAlert(BaseModel):

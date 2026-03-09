@@ -1,6 +1,17 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const resolveApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+  if (envUrl) return envUrl;
+
+  // Safe local fallback for development only.
+  if (import.meta.env.DEV) return 'http://localhost:8000';
+
+  // Prevent accidental localhost calls from production builds.
+  return `${window.location.protocol}//${window.location.hostname}:8000`;
+};
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -43,10 +54,14 @@ export const checkHealth = async () => {
 };
 
 // Make prediction
-export const predictFire = async (imageFile) => {
+export const predictFire = async (imageFile, coords = null) => {
   try {
     const formData = new FormData();
     formData.append('file', imageFile);
+    if (coords?.latitude != null && coords?.longitude != null) {
+      formData.append('latitude', String(coords.latitude));
+      formData.append('longitude', String(coords.longitude));
+    }
     
     const response = await api.post('/predict', formData, {
       headers: {
