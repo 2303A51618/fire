@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Optional, Dict, Any
 from pymongo import MongoClient
 from pymongo.errors import ServerSelectionTimeoutError, PyMongoError
+from bson import ObjectId
 
 logger = logging.getLogger(__name__)
 
@@ -211,6 +212,59 @@ class DatabaseService:
         except PyMongoError as e:
             logger.error(f"Error retrieving statistics: {str(e)}")
             return {}
+
+    def update_alert_email_status(
+        self,
+        alert_id: str,
+        email_sent: bool,
+        error_message: Optional[str] = None,
+    ) -> bool:
+        """
+        Update email delivery status for a specific alert.
+
+        Args:
+            alert_id: Alert document ID
+            email_sent: Whether email delivery succeeded
+            error_message: Optional error detail if sending failed
+
+        Returns:
+            True if update succeeded, False otherwise
+        """
+        try:
+            if not self.is_connected():
+                logger.warning("Database not connected, cannot update alert email status")
+                return False
+
+            collection = self.db["alerts"]
+            update_fields = {
+                "email_sent": email_sent,
+                "email_status": "sent" if email_sent else "failed",
+                "email_updated_at": datetime.utcnow(),
+            }
+
+            if error_message:
+                update_fields["email_error"] = error_message
+            else:
+                update_fields["email_error"] = None
+
+            result = collection.update_one(
+                {"_id": ObjectId(alert_id)},
+                {"$set": update_fields},
+            )
+
+            if result.modified_count > 0:
+                logger.info(
+                    f"Updated email status for alert {alert_id}: "
+                    f"{'sent' if email_sent else 'failed'}"
+                )
+                return True
+
+            logger.warning(f"Alert not found or unchanged for ID: {alert_id}")
+            return False
+
+        except Exception as e:
+            logger.error(f"Error updating alert email status: {str(e)}")
+            return False
 
     def close(self) -> None:
         """Close database connection"""

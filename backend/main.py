@@ -103,6 +103,7 @@ app.add_middleware(
 
 
 def send_alert_email_background(
+    alert_id: str,
     to_email: str,
     confidence: float,
     timestamp: datetime,
@@ -120,8 +121,11 @@ def send_alert_email_background(
         alert_threshold: Alert threshold value
     """
     try:
+        email_sent = False
+        error_message = None
+
         if email_service:
-            email_service.send_alert_email(
+            email_sent = email_service.send_alert_email(
                 to_email=to_email,
                 confidence=confidence,
                 timestamp=timestamp,
@@ -129,8 +133,30 @@ def send_alert_email_background(
                 latitude=latitude,
                 longitude=longitude,
             )
+            if not email_sent:
+                error_message = "SMTP send failed"
+        else:
+            error_message = "Email service unavailable"
+
+        if db_service and db_service.is_connected() and alert_id:
+            db_service.update_alert_email_status(
+                alert_id=alert_id,
+                email_sent=email_sent,
+                error_message=error_message,
+            )
+
+        if email_sent:
+            logger.info(f"Alert email delivered for alert {alert_id}")
+        else:
+            logger.warning(f"Alert email not delivered for alert {alert_id}: {error_message}")
     except Exception as e:
         logger.error(f"Error in background email task: {str(e)}")
+        if db_service and db_service.is_connected() and alert_id:
+            db_service.update_alert_email_status(
+                alert_id=alert_id,
+                email_sent=False,
+                error_message=str(e),
+            )
 
 
 @app.get("/health", response_model=HealthResponse, tags=["Health"])
@@ -264,6 +290,7 @@ async def predict(
             if background_tasks and email_service:
                 background_tasks.add_task(
                     send_alert_email_background,
+                    alert_id=alert_id,
                     to_email=settings.alert_email_to,
                     confidence=confidence,
                     timestamp=timestamp,

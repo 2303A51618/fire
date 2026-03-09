@@ -192,8 +192,10 @@ Do not reply to this email.
             msg.attach(MIMEText(html_body, "html"))
 
             # Send email
-            server = smtplib.SMTP(self.smtp_server, self.smtp_port)
+            server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=15)
+            server.ehlo()
             server.starttls()
+            server.ehlo()
             server.login(self.login, self.password)
             server.sendmail(self.from_email, to_email, msg.as_string())
             server.quit()
