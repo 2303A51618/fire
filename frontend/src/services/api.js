@@ -7,8 +7,8 @@ const resolveApiBaseUrl = () => {
   // Safe local fallback for development only.
   if (import.meta.env.DEV) return 'http://localhost:8000';
 
-  // Prevent accidental localhost calls from production builds.
-  return `${window.location.protocol}//${window.location.hostname}:8000`;
+  // Production fallback to deployed backend if env vars are missing.
+  return 'https://fire-pzy4.onrender.com';
 };
 
 const API_BASE_URL = resolveApiBaseUrl();
