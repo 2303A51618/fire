@@ -20,16 +20,19 @@ const fireIcon = L.icon({
 });
 
 export const FireMap = ({ fires = [] }) => {
-  const defaultCenter = [40.7128, -74.0060]; // NYC default
+  const defaultCenter = [45.4215, -75.6972]; // Ottawa, Canada default
   const center = fires.length > 0
     ? [fires[0].latitude || defaultCenter[0], fires[0].longitude || defaultCenter[1]]
     : defaultCenter;
+  
+  // Use higher zoom if we have specific fire location
+  const zoom = fires.length > 0 && fires[0].latitude ? 10 : 6;
 
   return (
-    <div className="w-full h-96 rounded-lg overflow-hidden shadow-lg">
+    <div className="w-full h-96 rounded-lg overflow-hidden shadow-lg border-2 border-fire-400">
       <MapContainer
         center={center}
-        zoom={6}
+        zoom={zoom}
         style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
@@ -46,10 +49,13 @@ export const FireMap = ({ fires = [] }) => {
               icon={fireIcon}
             >
               <Popup>
-                <div>
-                  <p className="font-bold">Fire Alert</p>
-                  <p>Confidence: {(fire.confidence * 100).toFixed(2)}%</p>
-                  <p>Time: {new Date(fire.timestamp).toLocaleString()}</p>
+                <div className="text-center">
+                  <p className="font-bold text-fire-600 text-lg">🔥 Fire Alert</p>
+                  <hr className="my-2" />
+                  <p className="text-sm"><strong>Confidence:</strong> {(fire.confidence * 100).toFixed(2)}%</p>
+                  <p className="text-sm"><strong>Location:</strong></p>
+                  <p className="text-xs font-mono">{fire.latitude.toFixed(6)}, {fire.longitude.toFixed(6)}</p>
+                  <p className="text-xs mt-2"><strong>Time:</strong> {new Date(fire.timestamp).toLocaleString()}</p>
                 </div>
               </Popup>
             </Marker>

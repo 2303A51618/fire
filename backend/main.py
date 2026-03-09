@@ -17,6 +17,7 @@ from services.email_service import EmailService
 from utils.config import get_settings, validate_settings
 from utils.logger import setup_logging
 from utils.image_hash import calculate_image_hash, validate_image_format, open_image_from_bytes
+from utils.exif_extractor import extract_gps_coordinates
 
 # Setup logging
 setup_logging(debug=False)
@@ -204,6 +205,20 @@ async def predict(
         # Open image
         image = open_image_from_bytes(image_data)
 
+        # Extract GPS coordinates from image EXIF (priority over browser location)
+        exif_lat, exif_lon = extract_gps_coordinates(image)
+        
+        # Use EXIF coordinates if available, otherwise fall back to browser location
+        final_latitude = exif_lat if exif_lat is not None else latitude
+        final_longitude = exif_lon if exif_lon is not None else longitude
+        
+        if exif_lat is not None and exif_lon is not None:
+            logger.info(f"Using GPS coordinates from image EXIF: ({final_latitude:.6f}, {final_longitude:.6f})")
+        elif latitude is not None and longitude is not None:
+            logger.info(f"Using GPS coordinates from browser: ({final_latitude:.6f}, {final_longitude:.6f})")
+        else:
+            logger.debug("No GPS coordinates available (neither EXIF nor browser)")
+
         # Get prediction
         prediction, confidence = model_loader.predict(image)
 
@@ -218,8 +233,8 @@ async def predict(
                 timestamp=timestamp,
                 image_hash=image_hash,
                 alert_threshold=settings.alert_threshold,
-                latitude=latitude,
-                longitude=longitude,
+                latitude=final_latitude,
+                longitude=final_longitude,
             )
 
         # If Fire detected above threshold, trigger alerts
@@ -241,8 +256,8 @@ async def predict(
                 image_hash=image_hash,
                 alert_threshold=settings.alert_threshold,
                 email_sent=False,
-                latitude=latitude,
-                longitude=longitude,
+                latitude=final_latitude,
+                longitude=final_longitude,
             )
 
             # Send email alert in background
@@ -253,8 +268,8 @@ async def predict(
                     confidence=confidence,
                     timestamp=timestamp,
                     alert_threshold=settings.alert_threshold,
-                    latitude=latitude,
-                    longitude=longitude,
+                    latitude=final_latitude,
+                    longitude=final_longitude,
                 )
 
                 # Update email_sent status if alert was stored
@@ -267,8 +282,8 @@ async def predict(
             confidence=confidence,
             timestamp=timestamp.isoformat() + "Z",
             image_hash=image_hash,
-            latitude=latitude,
-            longitude=longitude,
+            latitude=final_latitude,
+            longitude=final_longitude,
         )
 
         logger.info(

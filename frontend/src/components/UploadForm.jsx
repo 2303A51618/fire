@@ -160,14 +160,17 @@ export const UploadForm = () => {
 
             {/* Coordinates */}
             <div className="col-span-1 sm:col-span-2">
-              <p className="text-gray-600 text-xs sm:text-sm">Coordinates</p>
+              <p className="text-gray-600 text-xs sm:text-sm">Location (from Image GPS)</p>
               <p className="text-sm font-semibold">
                 {result.latitude != null && result.longitude != null
                   ? `${Number(result.latitude).toFixed(6)}, ${Number(result.longitude).toFixed(6)}`
                   : coords
-                    ? `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}`
+                    ? `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)} (Fallback)`
                     : 'Not available'}
               </p>
+              {result.latitude != null && result.longitude != null && (
+                <p className="text-xs text-green-600 mt-1">✓ Using GPS data from image metadata</p>
+              )}
             </div>
           </div>
         </Card>
@@ -175,10 +178,20 @@ export const UploadForm = () => {
 
       {result?.prediction === 'Fire' && (result.latitude != null || coords) && (
         <Card className="border-2 border-fire-300 bg-fire-50/60">
-          <h3 className="text-lg sm:text-xl font-bold mb-3 text-fire-700">Fire Detected Location</h3>
-          <p className="text-xs sm:text-sm text-fire-700 mb-4">
-            Highlighted on map and included in alert email coordinates.
-          </p>
+          <div className="flex items-start gap-3 mb-4">
+            <span className="text-3xl">📍</span>
+            <div>
+              <h3 className="text-lg sm:text-xl font-bold text-fire-700">Fire Location Detected</h3>
+              <p className="text-xs sm:text-sm text-fire-700 mt-1">
+                {result.latitude != null && result.longitude != null
+                  ? "📷 Showing exact location from image GPS metadata"
+                  : "🌐 Showing approximate location from browser (image has no GPS data)"}
+              </p>
+              <p className="text-xs text-fire-600 mt-2">
+                🔥 Highlighted on map below • 📧 Coordinates sent in alert email
+              </p>
+            </div>
+          </div>
           <FireMap
             fires={[
               {
