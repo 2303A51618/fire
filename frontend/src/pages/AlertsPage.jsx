@@ -33,10 +33,10 @@ const AlertsPage = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <div>
-        <h1 className="text-4xl font-bold mb-2">Fire Alerts</h1>
-        <p className="text-gray-600">
+        <h1 className="text-3xl sm:text-4xl font-bold mb-2">Fire Alerts</h1>
+        <p className="text-sm sm:text-base text-gray-600">
           All fire detection alerts with confidence scores and email notification status
         </p>
       </div>
@@ -44,12 +44,12 @@ const AlertsPage = () => {
       {error && <ErrorAlert message={error} />}
 
       {/* Load more button */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         {[10, 25, 50, 100].map(val => (
           <button
             key={val}
             onClick={() => setLimit(val)}
-            className={`px-4 py-2 rounded-lg font-semibold transition ${
+            className={`px-3 sm:px-4 py-2 rounded-lg font-semibold transition text-sm sm:text-base ${
               limit === val
                 ? 'bg-fire-600 text-white'
                 : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
@@ -71,22 +71,22 @@ const AlertsPage = () => {
       ) : (
         <div className="space-y-4">
           {/* Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <Card>
-              <p className="text-gray-600 text-sm">Total Alerts</p>
-              <p className="text-3xl font-bold text-fire-600">{alerts.length}</p>
+              <p className="text-gray-600 text-xs sm:text-sm">Total Alerts</p>
+              <p className="text-2xl sm:text-3xl font-bold text-fire-600">{alerts.length}</p>
             </Card>
             <Card>
-              <p className="text-gray-600 text-sm">Average Confidence</p>
-              <p className="text-3xl font-bold text-blue-600">
+              <p className="text-gray-600 text-xs sm:text-sm">Average Confidence</p>
+              <p className="text-2xl sm:text-3xl font-bold text-blue-600">
                 {(
                   (alerts.reduce((sum, a) => sum + a.confidence, 0) / alerts.length) * 100
                 ).toFixed(2)}%
               </p>
             </Card>
             <Card>
-              <p className="text-gray-600 text-sm">Emails Sent</p>
-              <p className="text-3xl font-bold text-green-600">
+              <p className="text-gray-600 text-xs sm:text-sm">Emails Sent</p>
+              <p className="text-2xl sm:text-3xl font-bold text-green-600">
                 {alerts.filter(a => a.email_sent).length}
               </p>
             </Card>
@@ -98,24 +98,24 @@ const AlertsPage = () => {
               const severity = getSeverityLevel(alert.confidence);
               return (
                 <Card key={idx} className="border-l-4 border-fire-600">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                     {/* Time */}
-                    <div>
-                      <p className="text-gray-600 text-sm font-semibold">Detection Time</p>
-                      <p className="text-sm">{new Date(alert.timestamp).toLocaleString()}</p>
+                    <div className="col-span-2 sm:col-span-1">
+                      <p className="text-gray-600 text-xs sm:text-sm font-semibold">Detection Time</p>
+                      <p className="text-xs sm:text-sm">{new Date(alert.timestamp).toLocaleString()}</p>
                     </div>
 
                     {/* Confidence */}
                     <div>
-                      <p className="text-gray-600 text-sm font-semibold">Confidence</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="w-16 bg-gray-300 rounded-full h-2">
+                      <p className="text-gray-600 text-xs sm:text-sm font-semibold">Confidence</p>
+                      <div className="flex items-center gap-1 sm:gap-2 mt-1">
+                        <div className="w-12 sm:w-16 bg-gray-300 rounded-full h-2">
                           <div
                             className="h-2 rounded-full bg-fire-600"
                             style={{ width: `${alert.confidence * 100}%` }}
                           ></div>
                         </div>
-                        <span className="text-sm font-bold">
+                        <span className="text-xs sm:text-sm font-bold">
                           {(alert.confidence * 100).toFixed(1)}%
                         </span>
                       </div>
@@ -123,7 +123,7 @@ const AlertsPage = () => {
 
                     {/* Severity */}
                     <div>
-                      <p className="text-gray-600 text-sm font-semibold">Severity</p>
+                      <p className="text-gray-600 text-xs sm:text-sm font-semibold">Severity</p>
                       <StatusBadge
                         status={severity.level.toLowerCase()}
                         text={severity.level}
@@ -132,7 +132,7 @@ const AlertsPage = () => {
 
                     {/* Email Status */}
                     <div>
-                      <p className="text-gray-600 text-sm font-semibold">Email Notification</p>
+                      <p className="text-gray-600 text-xs sm:text-sm font-semibold">Email Notification</p>
                       {alert.email_sent ? (
                         <div className="flex items-center gap-1 mt-1">
                           <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-300">
@@ -150,7 +150,7 @@ const AlertsPage = () => {
 
                     {/* Status */}
                     <div>
-                      <p className="text-gray-600 text-sm font-semibold">Status</p>
+                      <p className="text-gray-600 text-xs sm:text-sm font-semibold">Status</p>
                       <StatusBadge status="warning" text={alert.status || 'Active'} />
                     </div>
                   </div>

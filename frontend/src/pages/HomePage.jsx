@@ -59,26 +59,26 @@ const HomePage = () => {
                 <span className="rounded-full bg-black/20 border border-white/20 px-3 py-1 text-xs md:text-sm font-semibold">Wildfire Risk AI</span>
               </div>
 
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight drop-shadow-md hero-glow-sweep text-left">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight drop-shadow-md hero-glow-sweep text-left">
                 <span className="text-cyan-300">Forest Fire Detection</span>
-                <span className="block text-orange-400">Control Room</span>
+                <span className="block text-orange-400 mt-1 sm:mt-2">Control Room</span>
               </h1>
 
-              <p className="mt-5 text-base md:text-lg text-fire-50 max-w-2xl leading-relaxed">
+              <p className="mt-4 sm:mt-5 text-sm sm:text-base md:text-lg text-fire-50 max-w-2xl leading-relaxed">
                 Monitor high-risk zones with AI-based image analysis, trigger rapid alerts, and reduce response time before incidents escalate.
               </p>
 
-              <div className="mt-8 flex flex-wrap gap-4">
+              <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
                 <Link
                   to="/upload"
-                  className="inline-flex items-center gap-2 bg-white text-fire-800 px-6 py-3 rounded-xl font-bold hover:bg-fire-50 transition-all duration-300 transform hover:scale-105 hero-fire-glow hero-cta-fire"
+                  className="inline-flex items-center justify-center gap-2 bg-white text-fire-800 px-5 sm:px-6 py-3 rounded-xl font-bold hover:bg-fire-50 transition-all duration-300 transform hover:scale-105 hero-fire-glow hero-cta-fire w-full sm:w-auto text-sm sm:text-base"
                 >
                   <span>📤</span>
                   <span>Start Detection</span>
                 </Link>
                 <Link
                   to="/dashboard"
-                  className="inline-flex items-center gap-2 bg-black/20 text-white px-6 py-3 rounded-xl font-bold border border-white/30 hover:bg-black/30 transition-all duration-300 transform hover:scale-105 hero-safe-glow"
+                  className="inline-flex items-center justify-center gap-2 bg-black/20 text-white px-5 sm:px-6 py-3 rounded-xl font-bold border border-white/30 hover:bg-black/30 transition-all duration-300 transform hover:scale-105 hero-safe-glow w-full sm:w-auto text-sm sm:text-base"
                 >
                   <span>📊</span>
                   <span>Open Dashboard</span>
@@ -90,24 +90,24 @@ const HomePage = () => {
       </section>
 
       {/* Features Section */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
         <Card className="hover:shadow-2xl transition-all duration-300 transform hover:scale-105 border-l-4 border-fire-500">
-          <div className="text-5xl mb-4 animate-float">🤖</div>
-          <h3 className="text-2xl font-bold mb-3 text-fire-700">AI-Powered Detection</h3>
+          <div className="text-4xl sm:text-5xl mb-4 animate-float">🤖</div>
+          <h3 className="text-xl sm:text-2xl font-bold mb-3 text-fire-700">AI-Powered Detection</h3>
           <p className="text-gray-600 leading-relaxed">
             Advanced Keras/TensorFlow models detect fires with high accuracy using deep learning
           </p>
         </Card>
         <Card className="hover:shadow-2xl transition-all duration-300 transform hover:scale-105 border-l-4 border-forest-500">
-          <div className="text-5xl mb-4">📊</div>
-          <h3 className="text-2xl font-bold mb-3 text-forest-700">Real-time Analytics</h3>
+          <div className="text-4xl sm:text-5xl mb-4">📊</div>
+          <h3 className="text-xl sm:text-2xl font-bold mb-3 text-forest-700">Real-time Analytics</h3>
           <p className="text-gray-600 leading-relaxed">
             Monitor predictions and trends with interactive dashboards and live updates
           </p>
         </Card>
         <Card className="hover:shadow-2xl transition-all duration-300 transform hover:scale-105 border-l-4 border-safety-500">
-          <div className="text-5xl mb-4">📧</div>
-          <h3 className="text-2xl font-bold mb-3 text-safety-700">Instant Alerts</h3>
+          <div className="text-4xl sm:text-5xl mb-4">📧</div>
+          <h3 className="text-xl sm:text-2xl font-bold mb-3 text-safety-700">Instant Alerts</h3>
           <p className="text-gray-600 leading-relaxed">
             Receive email notifications when fire is detected above threshold
           </p>
@@ -116,9 +116,9 @@ const HomePage = () => {
 
       {/* System Status */}
       <section className="animate-fade-in">
-        <h2 className="text-4xl font-bold mb-8 text-forest-800 flex items-center">
-          <span className="mr-3">🖥️</span>
-          System Status
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 text-forest-800 flex items-center">
+          <span className="mr-2 sm:mr-3 text-3xl sm:text-4xl">🖥️</span>
+          <span>System Status</span>
         </h2>
         {loading ? (
           <LoadingSpinner />
@@ -130,7 +130,7 @@ const HomePage = () => {
             </div>
           </Card>
         ) : health ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <Card className="fire-glow hover:shadow-2xl transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
