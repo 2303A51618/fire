@@ -132,10 +132,20 @@ const AlertsPage = () => {
 
                     {/* Email Status */}
                     <div>
-                      <p className="text-gray-600 text-sm font-semibold">Email Sent</p>
-                      <p className={`text-sm font-semibold ${alert.email_sent ? 'text-green-600' : 'text-red-600'}`}>
-                        {alert.email_sent ? '✅ Yes' : '❌ No'}
-                      </p>
+                      <p className="text-gray-600 text-sm font-semibold">Email Notification</p>
+                      {alert.email_sent ? (
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-300">
+                            ✅ Sent
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-300">
+                            ❌ Not Sent
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Status */}
