@@ -15,8 +15,46 @@ const API_BASE_URL = resolveApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 12000,
 });
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isRetryableError = (error) => {
+  const status = error?.response?.status;
+  const code = error?.code;
+  const message = String(error?.message || '').toLowerCase();
+
+  if ([502, 503, 504].includes(status)) return true;
+  if (code === 'ECONNABORTED') return true;
+  if (message.includes('network error')) return true;
+  return false;
+};
+
+const withRetry = async (requestFn, { retries = 3, initialDelayMs = 1500 } = {}) => {
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await requestFn();
+    } catch (error) {
+      lastError = error;
+      if (attempt === retries || !isRetryableError(error)) {
+        throw error;
+      }
+      const delayMs = initialDelayMs * (attempt + 1);
+      await wait(delayMs);
+    }
+  }
+  throw lastError;
+};
+
+export const warmUpApi = async () => {
+  // Trigger backend wake-up after idle periods (Render cold starts).
+  return withRetry(() => api.get('/health', { timeout: 10000 }), {
+    retries: 5,
+    initialDelayMs: 2000,
+  });
+};
 
 // Request interceptor
 api.interceptors.request.use(
@@ -45,7 +83,10 @@ api.interceptors.response.use(
 // Health check
 export const checkHealth = async () => {
   try {
-    const response = await api.get('/health');
+    const response = await withRetry(() => api.get('/health'), {
+      retries: 4,
+      initialDelayMs: 2000,
+    });
     return response.data;
   } catch (error) {
     console.error('Health check failed:', error.message);
@@ -54,19 +95,16 @@ export const checkHealth = async () => {
 };
 
 // Make prediction
-export const predictFire = async (imageFile, coords = null) => {
+export const predictFire = async (imageFile) => {
   try {
     const formData = new FormData();
     formData.append('file', imageFile);
-    if (coords?.latitude != null && coords?.longitude != null) {
-      formData.append('latitude', String(coords.latitude));
-      formData.append('longitude', String(coords.longitude));
-    }
-    
+
     const response = await api.post('/predict', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 45000,
     });
     return response.data;
   } catch (error) {
@@ -78,8 +116,11 @@ export const predictFire = async (imageFile, coords = null) => {
 // Get recent alerts
 export const getAlerts = async (limit = 10) => {
   try {
-    const response = await api.get('/alerts', {
+    const response = await withRetry(() => api.get('/alerts', {
       params: { limit },
+    }), {
+      retries: 4,
+      initialDelayMs: 1500,
     });
     return response.data;
   } catch (error) {
@@ -91,7 +132,10 @@ export const getAlerts = async (limit = 10) => {
 // Get statistics
 export const getStatistics = async () => {
   try {
-    const response = await api.get('/statistics');
+    const response = await withRetry(() => api.get('/statistics'), {
+      retries: 4,
+      initialDelayMs: 1500,
+    });
     return response.data;
   } catch (error) {
     console.error('Failed to fetch statistics:', error.message);

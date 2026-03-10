@@ -56,6 +56,9 @@ class DatabaseService:
         alert_threshold: float,
         latitude: Optional[float] = None,
         longitude: Optional[float] = None,
+        map_url: Optional[str] = None,
+        image_name: Optional[str] = None,
+        location: Optional[str] = None,
     ) -> Optional[str]:
         """
         Store a prediction record in the database
@@ -66,6 +69,11 @@ class DatabaseService:
             timestamp: Datetime of prediction
             image_hash: SHA256 hash of the image
             alert_threshold: Threshold used for alert
+            latitude: Latitude of fire location
+            longitude: Longitude of fire location
+            map_url: Google Maps URL for the coordinates
+            image_name: Original uploaded filename
+            location: Location identifier for alerts (filename)
 
         Returns:
             Inserted document ID or None if failed
@@ -84,6 +92,9 @@ class DatabaseService:
                 "alert_threshold": alert_threshold,
                 "latitude": latitude,
                 "longitude": longitude,
+                "map_url": map_url,
+                "image_name": image_name,
+                "location": location,
                 "created_at": datetime.utcnow(),
             }
 
@@ -105,6 +116,9 @@ class DatabaseService:
         email_sent: bool = False,
         latitude: Optional[float] = None,
         longitude: Optional[float] = None,
+        map_url: Optional[str] = None,
+        image_name: Optional[str] = None,
+        location: Optional[str] = None,
     ) -> Optional[str]:
         """
         Store a fire alert in the database
@@ -116,6 +130,11 @@ class DatabaseService:
             image_hash: SHA256 hash of the image
             alert_threshold: Threshold used for alert
             email_sent: Whether email alert was sent
+            latitude: Latitude of fire location
+            longitude: Longitude of fire location
+            map_url: Google Maps URL for the coordinates
+            image_name: Original uploaded filename
+            location: Location identifier for alerts (filename)
 
         Returns:
             Inserted document ID or None if failed
@@ -136,6 +155,9 @@ class DatabaseService:
                 "email_sent": email_sent,
                 "latitude": latitude,
                 "longitude": longitude,
+                "map_url": map_url,
+                "image_name": image_name,
+                "location": location,
                 "created_at": datetime.utcnow(),
                 "acknowledged": False,
             }
@@ -201,12 +223,16 @@ class DatabaseService:
                 {"prediction": "No Fire"}
             )
             total_alerts = alerts_collection.count_documents({})
+            sent_alert_emails = alerts_collection.count_documents({"email_sent": True})
+            failed_alert_emails = alerts_collection.count_documents({"email_sent": False})
 
             return {
                 "total_predictions": total_predictions,
                 "fire_predictions": fire_predictions,
                 "no_fire_predictions": no_fire_predictions,
                 "total_alerts": total_alerts,
+                "sent_alert_emails": sent_alert_emails,
+                "failed_alert_emails": failed_alert_emails,
             }
 
         except PyMongoError as e:

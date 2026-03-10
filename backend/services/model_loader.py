@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Tuple, Optional
 import numpy as np
 from PIL import Image
-import tensorflow as tf
 
 logger = logging.getLogger(__name__)
 
@@ -14,17 +13,21 @@ logger = logging.getLogger(__name__)
 class ModelLoader:
     """Handles loading and inference with the TensorFlow model"""
 
-    def __init__(self, model_path: str):
+    def __init__(self, model_path: str, load_on_init: bool = False):
         self.model_path = Path(model_path)
         self.model = None
         self.class_names = ["No Fire", "Fire"]
-        self._load_model()
+        if load_on_init:
+            self._load_model()
 
     def _load_model(self) -> None:
         """Load the TensorFlow model from disk"""
         try:
             if not self.model_path.exists():
                 raise FileNotFoundError(f"Model file not found at {self.model_path}")
+
+            # Import TensorFlow only when needed to reduce cold-start overhead.
+            import tensorflow as tf
 
             # Load the H5 model
             self.model = tf.keras.models.load_model(str(self.model_path), compile=False)
@@ -36,6 +39,12 @@ class ModelLoader:
         except Exception as e:
             logger.error(f"Failed to load model: {str(e)}")
             raise
+
+    def ensure_loaded(self) -> None:
+        """Load model on demand if it is not already loaded."""
+        if self.model is None:
+            logger.info("Model is not loaded yet. Loading on first prediction request.")
+            self._load_model()
 
     def preprocess_image(self, image: Image.Image) -> np.ndarray:
         """
@@ -82,8 +91,7 @@ class ModelLoader:
             Tuple of (prediction_class, confidence_score)
         """
         try:
-            if self.model is None:
-                raise RuntimeError("Model is not loaded")
+            self.ensure_loaded()
 
             # Preprocess the image
             processed_image = self.preprocess_image(image)

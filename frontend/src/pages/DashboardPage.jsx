@@ -43,7 +43,7 @@ const DashboardPage = () => {
 
       {/* Statistics Cards */}
       {stats && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
           <Card>
             <p className="text-gray-600 text-xs sm:text-sm">Total Predictions</p>
             <p className="text-2xl sm:text-3xl font-bold text-blue-600">{stats.total_predictions || 0}</p>
@@ -59,6 +59,10 @@ const DashboardPage = () => {
           <Card>
             <p className="text-gray-600 text-xs sm:text-sm">Active Alerts</p>
             <p className="text-2xl sm:text-3xl font-bold text-orange-600">{stats.total_alerts || 0}</p>
+          </Card>
+          <Card>
+            <p className="text-gray-600 text-xs sm:text-sm">Emails Sent</p>
+            <p className="text-2xl sm:text-3xl font-bold text-green-600">{stats.sent_alert_emails || 0}</p>
           </Card>
         </div>
       )}
@@ -84,7 +88,45 @@ const DashboardPage = () => {
 
       {/* Map */}
       <Card>
-        <h2 className="text-2xl font-bold mb-4">Fire Locations Map</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+          <h2 className="text-2xl font-bold">Fire Locations Map</h2>
+          <span className="text-sm text-gray-500">
+            {alerts.filter(a => a.latitude != null && a.longitude != null).length} of {alerts.length} alerts have coordinates
+          </span>
+        </div>
+
+        {/* Latest Located Fire spotlight */}
+        {(() => {
+          const latest = alerts.find(a => a.latitude != null && a.longitude != null);
+          if (!latest) return null;
+          const isFromFilename = latest.image_name && /^-?\d/.test(latest.image_name) && latest.image_name.includes(',');
+          const mapLink = latest.map_url || `https://maps.google.com/?q=${latest.latitude},${latest.longitude}`;
+          return (
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-3 bg-fire-50 border border-fire-200 rounded-lg px-4 py-3">
+              <span className="text-3xl">📍</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-fire-700 text-sm">Latest Located Fire</p>
+                <p className="text-xs text-gray-700 mt-0.5 font-mono">
+                  Lat: {Number(latest.latitude).toFixed(6)}&nbsp;&nbsp;
+                  Lon: {Number(latest.longitude).toFixed(6)}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {isFromFilename ? '📁 Coordinates from filename' : '📷 Coordinates from EXIF'}
+                  {latest.image_name && <span className="ml-2 text-gray-400">{latest.image_name}</span>}
+                </p>
+              </div>
+              <a
+                href={mapLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 inline-flex items-center gap-1 text-xs text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-full transition"
+              >
+                🗺️ Google Maps
+              </a>
+            </div>
+          );
+        })()}
+
         <FireMap fires={alerts} />
       </Card>
 
@@ -97,33 +139,73 @@ const DashboardPage = () => {
               <tr className="border-b bg-gray-50">
                 <th className="text-left p-2 sm:p-3 text-xs sm:text-sm">Time</th>
                 <th className="text-left p-2 sm:p-3 text-xs sm:text-sm">Confidence</th>
+                <th className="text-left p-2 sm:p-3 text-xs sm:text-sm">Location</th>
                 <th className="text-left p-2 sm:p-3 text-xs sm:text-sm">Status</th>
                 <th className="text-left p-2 sm:p-3 text-xs sm:text-sm">Email Sent</th>
               </tr>
             </thead>
             <tbody>
-              {alerts.map((alert, idx) => (
-                <tr key={idx} className="border-b hover:bg-gray-50">
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{new Date(alert.timestamp).toLocaleString()}</td>
-                  <td className="p-2 sm:p-3">
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      <div className="w-8 sm:w-12 bg-gray-300 rounded-full h-2">
-                        <div
-                          className="h-2 rounded-full bg-fire-600"
-                          style={{ width: `${alert.confidence * 100}%` }}
-                        ></div>
+              {alerts.map((alert, idx) => {
+                const hasCoords = alert.latitude != null && alert.longitude != null;
+                const mapLink = alert.map_url || (hasCoords ? `https://maps.google.com/?q=${alert.latitude},${alert.longitude}` : null);
+                return (
+                  <tr key={idx} className="border-b hover:bg-gray-50">
+                    <td className="p-2 sm:p-3 text-xs sm:text-sm">{new Date(alert.timestamp).toLocaleString()}</td>
+                    <td className="p-2 sm:p-3">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <div className="w-8 sm:w-12 bg-gray-300 rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full bg-fire-600"
+                            style={{ width: `${alert.confidence * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-xs sm:text-sm font-semibold">{(alert.confidence * 100).toFixed(2)}%</span>
                       </div>
-                      <span className="text-xs sm:text-sm font-semibold">{(alert.confidence * 100).toFixed(2)}%</span>
-                    </div>
-                  </td>
-                  <td className="p-2 sm:p-3">
-                    <span className="px-2 sm:px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs sm:text-sm">
-                      {alert.status}
-                    </span>
-                  </td>
-                  <td className="p-2 sm:p-3 text-xs sm:text-sm">{alert.email_sent ? '✅ Yes' : '❌ No'}</td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="p-2 sm:p-3">
+                      {hasCoords ? (
+                        <div className="space-y-0.5">
+                          <p className="text-xs font-mono text-gray-700">
+                            {Number(alert.latitude).toFixed(4)}, {Number(alert.longitude).toFixed(4)}
+                          </p>
+                          {mapLink && (
+                            <a
+                              href={mapLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:underline"
+                            >
+                              🗺️ Map
+                            </a>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">No coords</span>
+                      )}
+                    </td>
+                    <td className="p-2 sm:p-3">
+                      <span className="px-2 sm:px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs sm:text-sm">
+                        {alert.status}
+                      </span>
+                    </td>
+                    <td className="p-2 sm:p-3 text-xs sm:text-sm">
+                      {alert.email_sent ? (
+                        <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 border border-green-300 font-semibold">
+                          ✅ Sent
+                        </span>
+                      ) : alert.email_status === 'failed' ? (
+                        <span className="px-2 py-1 rounded-full bg-red-100 text-red-700 border border-red-300 font-semibold">
+                          ❌ Failed
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 border border-yellow-300 font-semibold">
+                          ⏳ Pending
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           {alerts.length === 0 && (

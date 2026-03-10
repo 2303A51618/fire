@@ -96,9 +96,12 @@ const AlertsPage = () => {
           <div className="space-y-4">
             {alerts.map((alert, idx) => {
               const severity = getSeverityLevel(alert.confidence);
+              const hasCoords = alert.latitude != null && alert.longitude != null;
+              const isFromFilename = hasCoords && alert.image_name && /^-?\d/.test(alert.image_name) && alert.image_name.includes(',');
+              const mapLink = alert.map_url || (hasCoords ? `https://maps.google.com/?q=${alert.latitude},${alert.longitude}` : null);
               return (
                 <Card key={idx} className="border-l-4 border-fire-600">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
                     {/* Time */}
                     <div className="col-span-2 sm:col-span-1">
                       <p className="text-gray-600 text-xs sm:text-sm font-semibold">Detection Time</p>
@@ -121,6 +124,33 @@ const AlertsPage = () => {
                       </div>
                     </div>
 
+                    {/* Location */}
+                    <div>
+                      <p className="text-gray-600 text-xs sm:text-sm font-semibold">Location</p>
+                      {hasCoords ? (
+                        <div className="mt-1 space-y-0.5">
+                          <p className="text-xs font-mono text-gray-700">
+                            {Number(alert.latitude).toFixed(4)},&nbsp;{Number(alert.longitude).toFixed(4)}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {isFromFilename ? '📁 filename' : '📷 EXIF'}
+                          </p>
+                          {mapLink && (
+                            <a
+                              href={mapLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-white bg-blue-600 hover:bg-blue-700 px-2 py-0.5 rounded-full transition"
+                            >
+                              🗺️ Map
+                            </a>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-400 mt-1">No coordinates</p>
+                      )}
+                    </div>
+
                     {/* Severity */}
                     <div>
                       <p className="text-gray-600 text-xs sm:text-sm font-semibold">Severity</p>
@@ -139,10 +169,16 @@ const AlertsPage = () => {
                             ✅ Sent
                           </span>
                         </div>
-                      ) : (
+                      ) : alert.email_status === 'failed' ? (
                         <div className="flex items-center gap-1 mt-1">
                           <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-300">
-                            ❌ Not Sent
+                            ❌ Failed
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 border border-yellow-300">
+                            ⏳ Pending
                           </span>
                         </div>
                       )}

@@ -10,18 +10,26 @@ class PredictionResponse(BaseModel):
             "example": {
                 "prediction": "Fire",
                 "confidence": 0.95,
+                "location": "-64.384,48.64359.jpg",
                 "timestamp": "2024-01-15T10:30:00Z",
                 "image_hash": "abc12345...",
+                "latitude": -64.384,
+                "longitude": 48.64359,
+                "map_url": "https://maps.google.com/?q=-64.384,48.64359",
+                "image_name": "-64.384,48.64359.jpg",
             }
         }
     )
 
     prediction: str = Field(..., description="Fire or No Fire")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score between 0 and 1")
+    location: Optional[str] = Field(None, description="Location identifier (original uploaded filename)")
     timestamp: str = Field(..., description="ISO format timestamp")
     image_hash: Optional[str] = Field(None, description="SHA256 hash of the image")
-    latitude: Optional[float] = Field(None, description="Latitude of detection location")
-    longitude: Optional[float] = Field(None, description="Longitude of detection location")
+    latitude: Optional[float] = Field(None, description="Latitude extracted from filename or EXIF")
+    longitude: Optional[float] = Field(None, description="Longitude extracted from filename or EXIF")
+    map_url: Optional[str] = Field(None, description="Google Maps URL for detection coordinates")
+    image_name: Optional[str] = Field(None, description="Original uploaded filename")
 
 
 class FireAlert(BaseModel):

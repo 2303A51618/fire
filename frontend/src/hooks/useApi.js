@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { checkHealth } from '../services/api';
+import { checkHealth, warmUpApi } from '../services/api';
 
 export const useHealth = () => {
   const [health, setHealth] = useState(null);
@@ -10,6 +10,7 @@ export const useHealth = () => {
     const fetchHealth = async () => {
       try {
         setLoading(true);
+        await warmUpApi();
         const data = await checkHealth();
         setHealth(data);
         setError(null);
