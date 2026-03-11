@@ -11,13 +11,14 @@ const HomePage = () => {
       {/* Hero Section */}
       <section className="relative overflow-hidden text-white w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-8 min-h-[calc(100vh-4rem)] border-y border-fire-300/30">
         <video
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover object-center"
           autoPlay
           loop
           muted
           playsInline
+          poster="/natural-disaster-landscape.jpg"
         >
-          <source src="/AI_Forest_Fire_Detection_and_Prevention.mp4" type="video/mp4" />
+          <source src="/demo.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-br from-forest-950/70 via-forest-900/55 to-fire-900/65"></div>
         <div className="absolute inset-0 hero-grid-overlay opacity-20"></div>

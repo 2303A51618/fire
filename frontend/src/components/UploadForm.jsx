@@ -3,6 +3,8 @@ import { predictFire } from '../services/api';
 import { sendFireAlertEmail, formatAlertData, shouldSendAlert } from '../services/emailService';
 import { LoadingSpinner, Card, ErrorAlert, SuccessAlert } from './UI';
 import FireMap from './FireMap';
+import { formatToUserTime } from '../utils/time';
+import { playFireAlertSound, isAlertMuted, setAlertMuted } from '../utils/alertSound';
 
 export const UploadForm = () => {
   const [file, setFile] = useState(null);
@@ -13,6 +15,7 @@ export const UploadForm = () => {
   const [success, setSuccess] = useState(null);
   const [emailStatus, setEmailStatus] = useState(null);
   const [emailError, setEmailError] = useState(null);
+  const [isMuted, setIsMuted] = useState(isAlertMuted());
 
   const handleFileSelect = (e) => {
     const selectedFile = e.target.files[0];
@@ -46,6 +49,9 @@ export const UploadForm = () => {
 
       // Check if fire alert should be sent
       if (shouldSendAlert(data.prediction, data.confidence)) {
+        const fireEventKey = `${data.image_hash || data.timestamp || Date.now()}-fire`;
+        await playFireAlertSound(fireEventKey);
+
         // Format alert data — reads lat/lon/map_url directly from backend response
         const alertData = formatAlertData(data);
         
@@ -76,6 +82,23 @@ export const UploadForm = () => {
     <div className="space-y-4 sm:space-y-6">
       {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
       {success && <SuccessAlert message={success} onDismiss={() => setSuccess(null)} />}
+
+      <div className="flex justify-end">
+        <button
+          onClick={() => {
+            const nextMuted = !isMuted;
+            setIsMuted(nextMuted);
+            setAlertMuted(nextMuted);
+          }}
+          className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-semibold transition ${
+            isMuted
+              ? 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
+              : 'bg-red-50 text-red-700 border-red-300 hover:bg-red-100'
+          }`}
+        >
+          {isMuted ? '🔇 Alarm Muted' : '🔊 Alarm On'}
+        </button>
+      </div>
       
       {/* Email Status Notifications */}
       {emailStatus === 'sending' && (
@@ -185,7 +208,7 @@ export const UploadForm = () => {
             {/* Timestamp */}
             <div>
               <p className="text-gray-600 text-xs sm:text-sm">Timestamp</p>
-              <p className="text-sm sm:text-base font-semibold">{new Date(result.timestamp).toLocaleString()}</p>
+              <p className="text-sm sm:text-base font-semibold">{formatToUserTime(result.timestamp)}</p>
             </div>
 
             {/* Image Hash */}

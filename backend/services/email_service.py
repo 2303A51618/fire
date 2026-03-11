@@ -36,6 +36,8 @@ class EmailService:
         alert_threshold: float,
         latitude: float = None,
         longitude: float = None,
+        map_url: str = None,
+        image_name: str = None,
     ) -> bool:
         """
         Send fire detection alert email
@@ -55,6 +57,7 @@ class EmailService:
             location_html = ""
             location_text = ""
             if latitude is not None and longitude is not None:
+                _map_link = map_url or f"https://maps.google.com/?q={latitude},{longitude}"
                 location_html = f"""
                                 <div class=\"detail-item\">
                                     <span class=\"label\">Coordinates:</span>
@@ -62,13 +65,24 @@ class EmailService:
                                 </div>
                                 <div class=\"detail-item\">
                                     <span class=\"label\">Map Link:</span>
-                                    <span class=\"value\"><a href=\"https://maps.google.com/?q={latitude},{longitude}\">Open in Google Maps</a></span>
+                                    <span class=\"value\"><a href=\"{_map_link}\">Open in Google Maps</a></span>
                                 </div>
                 """
                 location_text = (
                     f"- Coordinates: {latitude:.6f}, {longitude:.6f}\n"
-                    f"- Map Link: https://maps.google.com/?q={latitude},{longitude}\n"
+                    f"- Map Link: {_map_link}\n"
                 )
+
+            image_html = ""
+            image_text = ""
+            if image_name:
+                image_html = f"""
+                                <div class=\"detail-item\">
+                                    <span class=\"label\">Image File:</span>
+                                    <span class=\"value\">{image_name}</span>
+                                </div>
+                """
+                image_text = f"- Image File: {image_name}\n"
 
             # Create HTML email body
             html_body = f"""
@@ -112,6 +126,7 @@ class EmailService:
                                     <span class="label">Alert Threshold:</span>
                                     <span class="value">{alert_threshold:.2%}</span>
                                 </div>
+                                {image_html}
                                 {location_html}
                             </div>
                             
@@ -143,7 +158,7 @@ Detection Details:
 - Detection Time: {timestamp.strftime('%Y-%m-%d %H:%M:%S UTC')}
 - Confidence Level: {confidence:.2%}
 - Alert Threshold: {alert_threshold:.2%}
-{location_text}
+{image_text}{location_text}
 
 Recommended Actions:
 1. Check the monitored area immediately

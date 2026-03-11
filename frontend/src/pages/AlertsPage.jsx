@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAlerts } from '../services/api';
 import { LoadingSpinner, Card, ErrorAlert, StatusBadge } from '../components/UI';
+import { formatToUserTime } from '../utils/time';
 
 const AlertsPage = () => {
   const [alerts, setAlerts] = useState([]);
@@ -105,7 +106,7 @@ const AlertsPage = () => {
                     {/* Time */}
                     <div className="col-span-2 sm:col-span-1">
                       <p className="text-gray-600 text-xs sm:text-sm font-semibold">Detection Time</p>
-                      <p className="text-xs sm:text-sm">{new Date(alert.timestamp).toLocaleString()}</p>
+                      <p className="text-xs sm:text-sm">{formatToUserTime(alert.timestamp)}</p>
                     </div>
 
                     {/* Confidence */}

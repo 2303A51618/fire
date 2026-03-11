@@ -3,7 +3,7 @@ Forest Fire Detection System - FastAPI Backend
 Production-ready API for forest fire detection using TensorFlow and MongoDB
 """
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks, Form
@@ -29,6 +29,11 @@ settings = None
 model_loader = None
 db_service = None
 email_service = None
+
+
+def utc_now_iso() -> str:
+    """Return current UTC timestamp as ISO-8601 string with Z suffix."""
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def initialize_services():
@@ -184,7 +189,7 @@ async def health_check():
             status="healthy" if (model_loaded and db_connected) else "degraded",
             model_loaded=model_loaded,
             database_connected=db_connected,
-            timestamp=datetime.utcnow().isoformat() + "Z",
+            timestamp=utc_now_iso(),
         )
         return response
 
@@ -195,7 +200,7 @@ async def health_check():
             content={
                 "error": "Internal Server Error",
                 "detail": str(e),
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": utc_now_iso(),
             },
         )
 
@@ -285,15 +290,16 @@ async def predict(
         # Get prediction
         prediction, confidence = model_loader.predict(image)
 
-        # Get current timestamp
-        timestamp = datetime.utcnow()
+        # Generate UTC timestamp once and reuse everywhere.
+        timestamp_iso = utc_now_iso()
+        timestamp_for_email = datetime.now(timezone.utc)
 
         # Store prediction in database (fire alert if threshold exceeded)
         if db_service and db_service.is_connected():
             db_service.store_prediction(
                 prediction=prediction,
                 confidence=confidence,
-                timestamp=timestamp,
+                timestamp=timestamp_iso,
                 image_hash=image_hash,
                 alert_threshold=settings.alert_threshold,
                 latitude=final_latitude,
@@ -318,7 +324,7 @@ async def predict(
             alert_id = db_service.store_alert(
                 prediction=prediction,
                 confidence=confidence,
-                timestamp=timestamp,
+                timestamp=timestamp_iso,
                 image_hash=image_hash,
                 alert_threshold=settings.alert_threshold,
                 email_sent=False,
@@ -336,7 +342,7 @@ async def predict(
                     alert_id=alert_id,
                     to_email=settings.alert_email_to,
                     confidence=confidence,
-                    timestamp=timestamp,
+                    timestamp=timestamp_for_email,
                     alert_threshold=settings.alert_threshold,
                     latitude=final_latitude,
                     longitude=final_longitude,
@@ -353,7 +359,7 @@ async def predict(
             prediction=prediction,
             confidence=confidence,
             location=location_identifier,
-            timestamp=timestamp.isoformat() + "Z",
+            timestamp=timestamp_iso,
             image_hash=image_hash,
             latitude=final_latitude,
             longitude=final_longitude,
@@ -414,7 +420,7 @@ async def get_statistics():
             raise HTTPException(status_code=503, detail="Database service unavailable")
 
         stats = db_service.get_statistics()
-        stats["timestamp"] = datetime.utcnow().isoformat() + "Z"
+        stats["timestamp"] = utc_now_iso()
         return stats
 
     except HTTPException:

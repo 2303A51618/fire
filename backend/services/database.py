@@ -2,13 +2,18 @@
 MongoDB database service for storing fire detection events and alerts
 """
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from pymongo import MongoClient
 from pymongo.errors import ServerSelectionTimeoutError, PyMongoError
 from bson import ObjectId
 
 logger = logging.getLogger(__name__)
+
+
+def utc_now_iso() -> str:
+    """Return current UTC timestamp as ISO-8601 string with Z suffix."""
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 class DatabaseService:
@@ -51,7 +56,7 @@ class DatabaseService:
         self,
         prediction: str,
         confidence: float,
-        timestamp: datetime,
+        timestamp: str,
         image_hash: str,
         alert_threshold: float,
         latitude: Optional[float] = None,
@@ -95,7 +100,7 @@ class DatabaseService:
                 "map_url": map_url,
                 "image_name": image_name,
                 "location": location,
-                "created_at": datetime.utcnow(),
+                "created_at": utc_now_iso(),
             }
 
             result = collection.insert_one(document)
@@ -110,7 +115,7 @@ class DatabaseService:
         self,
         prediction: str,
         confidence: float,
-        timestamp: datetime,
+        timestamp: str,
         image_hash: str,
         alert_threshold: float,
         email_sent: bool = False,
@@ -158,7 +163,7 @@ class DatabaseService:
                 "map_url": map_url,
                 "image_name": image_name,
                 "location": location,
-                "created_at": datetime.utcnow(),
+                "created_at": utc_now_iso(),
                 "acknowledged": False,
             }
 
@@ -265,7 +270,7 @@ class DatabaseService:
             update_fields = {
                 "email_sent": email_sent,
                 "email_status": "sent" if email_sent else "failed",
-                "email_updated_at": datetime.utcnow(),
+                "email_updated_at": utc_now_iso(),
             }
 
             if error_message:

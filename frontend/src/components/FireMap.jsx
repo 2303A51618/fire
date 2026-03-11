@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import { formatToUserTime } from '../utils/time';
 
 // Fix Leaflet default icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -141,7 +142,7 @@ export const FireMap = ({ fires = [] }) => {
 
                   {/* Timestamp */}
                   <p className="text-xs mt-2 text-gray-600">
-                    <strong>Time:</strong> {new Date(fire.timestamp).toLocaleString()}
+                    <strong>Time:</strong> {formatToUserTime(fire.timestamp)}
                   </p>
 
                   {/* Google Maps link */}

@@ -1,14 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getAlerts, getStatistics } from '../services/api';
 import { LoadingSpinner, Card, ErrorAlert } from '../components/UI';
 import FireMap from '../components/FireMap';
 import { ConfidenceChart, StatisticsChart, PredictionTrendChart } from '../components/Charts';
+import { formatToUserTime } from '../utils/time';
+import { playFireAlertSound, isAlertMuted, setAlertMuted } from '../utils/alertSound';
 
 const DashboardPage = () => {
   const [alerts, setAlerts] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showEmergencyAlert, setShowEmergencyAlert] = useState(false);
+  const [isMuted, setIsMuted] = useState(isAlertMuted());
+  const lastFireEventRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -18,8 +23,25 @@ const DashboardPage = () => {
           getAlerts(20),
           getStatistics(),
         ]);
-        setAlerts(alertsData.alerts || []);
+        const nextAlerts = alertsData.alerts || [];
+        setAlerts(nextAlerts);
         setStats(statsData);
+
+        // Trigger audible + visual alert for newly observed fire event/email transition.
+        const latestFire = nextAlerts.find((a) => a.prediction === 'Fire');
+        if (latestFire) {
+          const eventKey = `${latestFire._id || latestFire.timestamp}-${latestFire.email_sent ? 'email-sent' : 'email-pending'}`;
+
+          if (lastFireEventRef.current === null) {
+            // First poll snapshot: register baseline to avoid alerting old data.
+            lastFireEventRef.current = eventKey;
+          } else if (lastFireEventRef.current !== eventKey) {
+            lastFireEventRef.current = eventKey;
+            setShowEmergencyAlert(true);
+            await playFireAlertSound(eventKey);
+          }
+        }
+
         setError(null);
       } catch (err) {
         setError(err.message || 'Failed to fetch dashboard data');
@@ -37,9 +59,37 @@ const DashboardPage = () => {
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      <h1 className="text-3xl sm:text-4xl font-bold">Dashboard</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 className="text-3xl sm:text-4xl font-bold">Dashboard</h1>
+        <button
+          onClick={() => {
+            const nextMuted = !isMuted;
+            setIsMuted(nextMuted);
+            setAlertMuted(nextMuted);
+          }}
+          className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-semibold transition ${
+            isMuted
+              ? 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
+              : 'bg-red-50 text-red-700 border-red-300 hover:bg-red-100'
+          }`}
+        >
+          {isMuted ? '🔇 Alarm Muted' : '🔊 Alarm On'}
+        </button>
+      </div>
 
       {error && <ErrorAlert message={error} />}
+
+      {showEmergencyAlert && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3">
+          <p className="font-semibold text-red-700">🚨 Fire Detected — Alert Sent</p>
+          <button
+            onClick={() => setShowEmergencyAlert(false)}
+            className="text-xs font-semibold text-red-600 hover:text-red-800"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Statistics Cards */}
       {stats && (
@@ -150,7 +200,7 @@ const DashboardPage = () => {
                 const mapLink = alert.map_url || (hasCoords ? `https://maps.google.com/?q=${alert.latitude},${alert.longitude}` : null);
                 return (
                   <tr key={idx} className="border-b hover:bg-gray-50">
-                    <td className="p-2 sm:p-3 text-xs sm:text-sm">{new Date(alert.timestamp).toLocaleString()}</td>
+                    <td className="p-2 sm:p-3 text-xs sm:text-sm">{formatToUserTime(alert.timestamp)}</td>
                     <td className="p-2 sm:p-3">
                       <div className="flex items-center gap-1 sm:gap-2">
                         <div className="w-8 sm:w-12 bg-gray-300 rounded-full h-2">
